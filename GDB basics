@@ -62,12 +62,10 @@ step over:
 C 코드가 아닌 다음 instruction을 실행시키고 STEP INTO functions 하려면  
 (gdb) stepi 혹은 si  
 
-
 역시 C 코드의 다음 줄을 실행시키고 STEP OVER functions 하려면  
 (gdb) next 혹은 n  
 C 코드가 아닌 다음 instruction을 실행시키고 STEP OVER functions 하려면  
 (gdb) nexti 혹은 ni  
-
 
 step in 혹은 step over 한 후에 step out 하려면
 (gdb) finish 혹은 fin  
@@ -89,8 +87,23 @@ step in 혹은 step over 한 후에 step out 하려면
 /r은 해당 어셈블리 코드와 각각의 줄의 raw byte value를 보여준다.  
 
 
+- Print Variables, Registers
 
-*관련 example codes(http://visualgdb.com/gdbreference/commands/disassemble)*
+C 레벨 변수를 보려면
+(gdb) print [variable_name] 혹은 p [variable_name]
+
+메모리에 접근하려면
+(gdb) x [address]
+
+현재의 모든 레지스터 보려면
+(gdb) info registers 혹은 i r
+
+특정 레지스터 보려면
+(gdb) info registers eax
+
+
+
+*Disassemble 관련 example codes(http://visualgdb.com/gdbreference/commands/disassemble)*
 
 우선 우리의 코드는
 ```C++
