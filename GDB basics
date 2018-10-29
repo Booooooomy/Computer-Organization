@@ -93,7 +93,7 @@ step in 혹은 step over 한 후에 step out 하려면
 *관련 example codes(http://visualgdb.com/gdbreference/commands/disassemble)*
 
 우선 우리의 코드는
-C++:
+```C++
 int func(int a, int b)
 {
     return a + b;
@@ -103,7 +103,90 @@ int main()
 {
     return func(1, 2);
 }
+```
 
-여러가지 
+그럼 GDB로 가지고 놀아보자.  
 
+(gdb) break main
+Breakpoint 1 at 0x8048400: file test.c, line 8.
+
+(gdb) run
+Starting program: /home/bazis/test 
+Breakpoint 1, main () at test.c:8
+8 return func(1, 2);
+
+(gdb) disassemble
+Dump of assembler code for function main:
+0x080483fa <+0>: push %ebp
+0x080483fb <+1>: mov %esp,%ebp
+0x080483fd <+3>: sub $0x8,%esp
+=> 0x08048400 <+6>: movl $0x2,0x4(%esp)
+0x08048408 <+14>: movl $0x1,(%esp)
+0x0804840f <+21>: call 0x80483ed <func>
+0x08048414 <+26>: leave 
+0x08048415 <+27>: ret 
+End of assembler dump.
+
+(gdb) disassemble func
+Dump of assembler code for function func:
+0x080483ed <+0>: push %ebp
+0x080483ee <+1>: mov %esp,%ebp
+0x080483f0 <+3>: mov 0xc(%ebp),%eax
+0x080483f3 <+6>: mov 0x8(%ebp),%edx
+0x080483f6 <+9>: add %edx,%eax
+0x080483f8 <+11>: pop %ebp
+0x080483f9 <+12>: ret 
+End of assembler dump.
+
+(gdb) disassemble func,+6
+Dump of assembler code from 0x80483ed to 0x80483f3:
+0x080483ed <func+0>: push %ebp
+0x080483ee <func+1>: mov %esp,%ebp
+0x080483f0 <func+3>: mov 0xc(%ebp),%eax
+End of assembler dump.
+
+(gdb) disassemble func+3,func+7
+Dump of assembler code from 0x80483f0 to 0x80483f4:
+0x080483f0 <func+3>: mov 0xc(%ebp),%eax
+0x080483f3 <func+6>: mov 0x8(%ebp),%edx
+End of assembler dump.
+
+(gdb) disassemble 0x80483f0
+Dump of assembler code for function func:
+0x080483ed <+0>: push %ebp
+0x080483ee <+1>: mov %esp,%ebp
+0x080483f0 <+3>: mov 0xc(%ebp),%eax
+0x080483f3 <+6>: mov 0x8(%ebp),%edx
+0x080483f6 <+9>: add %edx,%eax
+0x080483f8 <+11>: pop %ebp
+0x080483f9 <+12>: ret 
+End of assembler dump.
+
+(gdb) disassemble /m func
+Dump of assembler code for function func:
+2 {
+0x080483ed <+0>: push %ebp
+0x080483ee <+1>: mov %esp,%ebp
+
+3 return a + b;
+0x080483f0 <+3>: mov 0xc(%ebp),%eax
+0x080483f3 <+6>: mov 0x8(%ebp),%edx
+0x080483f6 <+9>: add %edx,%eax
+
+4 }
+0x080483f8 <+11>: pop %ebp
+0x080483f9 <+12>: ret 
+
+End of assembler dump.
+
+(gdb) disassemble /r func
+Dump of assembler code for function func:
+0x080483ed <+0>: 55 push %ebp
+0x080483ee <+1>: 89 e5 mov %esp,%ebp
+0x080483f0 <+3>: 8b 45 0c mov 0xc(%ebp),%eax
+0x080483f3 <+6>: 8b 55 08 mov 0x8(%ebp),%edx
+0x080483f6 <+9>: 01 d0 add %edx,%eax
+0x080483f8 <+11>: 5d pop %ebp
+0x080483f9 <+12>: c3 ret 
+End of assembler dump.
 
