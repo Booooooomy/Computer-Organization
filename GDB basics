@@ -125,7 +125,7 @@ int main()
 }
 ```
 
-그럼 GDB로 가지고 놀아보자.  
+그럼 GDB 가지고 놀아보자.  
 
 (gdb) break main
 Breakpoint 1 at 0x8048400: file test.c, line 8.
