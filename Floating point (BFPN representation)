@@ -77,3 +77,23 @@ E = 1000_0000인 어떤 수는 M의 크기와 관계없이 걍 0이라고 보면
 
 Format이 위의 수와 조금 다르다. Single precision은 (-1)^s x 2^(E-127) x (1.M) 으로, 우선 bias를 127을 쓰고 normalization을 0.1M이 아닌 1.M으로 표현.
 
+
+-------------------------------------------------------------------------------------------------------------------
+
+**BFPN arithmetic**
+
+위에서 실수의 저장방법을 보았다면, 어떻게 연산하는지 보자.
+참고로 정수는 논리, 산술 연산이 다 있지만 실수는 논리연산이 없고 산술 연산만 있다.
+
+- 덧셈/뺄셈
+지수를 먼저 맞추고 가수끼리 덧/뺄셈을 해준 뒤 나온 결과를 normalization.
+
+- 곱셈/나눗셈
+가수끼리 연산하고 지수끼리 연산. 그리고 normalization.
+
+- 산술연산에서 발생 가능한 문제들
+1. exponent overflow: +inf, -inf 로 set.
+2. exponent underflow: 0으로 set.
+3. mantissa overflow: normalization
+4. mantissa underflow: 내림.
+
