@@ -5,6 +5,7 @@ Date: Oct. 28. 2018
 GDB는 GNU Debugger의 약자로, GNU에서 제작한 아주 강력한 debugger이다. 매우 정밀한 디버깅이 가능하다. 그런데 open source로 공개되어 무료로 사용가능하다.  
 참고로 디버깅은 프로그램의 논리적 오류(bug)를 찾아내는 테스트 과정을 얘기한다. 한 마디로, 디버거는 항상 내가 직접 해야 했던 디버깅 과정을 조금 수월하게 할 수 있게끔 도돠주는 보조 장치라 할 수 있겠다.  
 GDB는 GUI가 아닌 Kernel console을 기반으로 사용되는 툴이다. 그래서 관련된 여러가지 command를 외우는 것이 필수다.
+GDB는 사람이 쓴 C code가 아닌 이미 컴파일 과정을 거친 파일인 executable file을 분석한다. 예를 들어 hello.c 나 hello.s 따위는 gdb가 분석을 못한다. 걍 hello 파일만 가능하다는 것.  
 
 
 
@@ -100,6 +101,12 @@ C 레벨 변수를 보려면
 
 특정 레지스터 보려면
 (gdb) info registers eax
+
+
+- Quit
+
+GDB에서 나가려면 걍
+(gdb) quit 혹은 q
 
 
 
