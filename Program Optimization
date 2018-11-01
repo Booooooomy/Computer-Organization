@@ -1,0 +1,40 @@
+**Program Optimization**
+
+Program Optimization: 어떤 프로그램을 더 효과적으로, 더 빠르게, 또 메모리 등의 자원을 덜 사용하면서 실행되게 하는 작업.
+  - 예전에는 특정 프로그램을 가장 빠르게 작동시키는 방법은 그 프로그램의 어셈블리 코드를 적는 것이었지만 지금은 아니다.
+Optimization은 어떤 tool이나 platform을 사용하느냐에 따라 달라지는데, 우리는 GCC 를 사용한다.
+GCC보다 좋은 compiler가 많고, 가장 좋은 건 아니지만 꽤 쓸만한 공짜 컴파일러에 속한다.
+
+compiler가 optimize하는 요소들
+
+1. remove redundant statements
+필요 없는 부분 삭제: ex x = 1, y = 2, return x; 의 y = 2 부분 삭제.
+당연한 부분 삭제: ex if (1 < 2) then return 1; 의 if 절 삭제.
+
+2. compact/simplify insturctions
+c++에서 x = x+1; 는 compiler가 x++로 바꾼다. 메모리도 덜 쓰고, 시간도 덜 쓰고.
+
+3. choose faster instructions
+5*2 는 multiplication 대신 left shift 1회 해줌.
+
+4. removing repeated computation
+(a+b+5) + (b+c+6) 은 a + (2*b) + c + 11로 바꿔 사용.
+
+5. unrolling a loop
+jump instruction은 시간을 가장 많이 뺏어먹는 놈 중에 하나다. 그래서 프로그램의 진행에서 jump의 개수를 가능하면 줄이려 한다.
+예를 들어 for i = 0 to 100 print 1; 은 for i = 0 to 20 print 1; print 1; print 1; print 1; print 1;
+이런 식으로 for loop(정확히 말하면 jump instruction)의 횟수 자체를 줄이는 것.
+
+6. Extract an unchanging condition
+for each p in s
+  if time == day then p = y;
+  else if time == night then p = b;
+
+이 경우에 if와 else if절의 조건이 변하지 않기 때문에
+if time == day
+  for each p in s, p = y;
+else if time == night
+  for each p in s, p = b;
+
+이게 더 나은 거란다. 나는 for loop이 두 번 사용되니까 그냥 안 좋을 거라고 생각했는데, 보니까 O(n)은 같고 반면에 첫 번째 녀석은 비교 구문이 계속 나오는 반면 두 번째 녀석은 한 번만 나오니까 맞는 말이다.
+
