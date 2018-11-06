@@ -128,6 +128,7 @@ micro-operation을 알아보자. 참고로 이건 intel, AMR(AMD) 등의 회사�
 
 
 ILP 하는 방법은 2가지가 있다.
+
 1. microoperation
 
 2. pipelining
@@ -155,7 +156,15 @@ pipelining에도 보통 2개의 문제가 있는데,
     
 Superscalar processor: 한 번의 사이클에 여러 개의 인스트럭션을 수행할 수 있는 프로세서.
 
+3. Out-of-Order(simplified ver.)
+ICU(instruction control unit): 다음 insn이 뭘까를 결정하는 녀석. 이 안에 'fetch'가 어느 address에 있는 insn을 할까 결정 후 그걸 'Instruction cache'에 보내면 그게 관련 정보를 'decode'에 보내서 거기서 EU의 reservation system에 마이크로 오퍼레이션을 보내게 한다.
+EU(execution unit): L1 cache로부터 fetch가 다음 insn에 대한 정보를 꺼내간다. 그리고 종착지인 rs가 EU에 있다. 여기서 계산이 된 후 결과값은 EU 내부의 data cache에 저장되고 그건 필요한 경우 register file에도 저장된다.
+
+
+Getting data from A to B in chip:
+1. run a wire: n^2   2. use a register: 2n   3. register renaming: insn과 reservation system이 서로 다른 이야기를 한다는데, RS에 대해 좀 더 공부해야 할 듯.
+
+dependency diagram의 node는 micro operation을, edge는 description을 나타낸다. 그리고 I/O는 register을 나타낸다.
 
 tip: 코드가 덜 효과적이다 하면 move 커맨드를 의심해라.
-
 
