@@ -166,6 +166,10 @@ Getting data from A to B in chip:
 
 dependency diagram의 node는 micro operation을, edge는 description을 나타낸다. 그리고 I/O는 register을 나타낸다.
 
+loop unrolling:
+reassociation transformation:
+register spilling: 만약 register가 16갠데 local variable이 30개일 때: 우선 꼭 필요한 10개의 local v 한테 register 10개를 배정하고 나머지 6개로 나머지 20개 loc variable을 stack에 배정한 후 돌림빵한다.
+conditional moves: x = (a?b:c) 이면 (x,b,c 레지스터 a 조건문): movl c x   test a   cmovl b x(cannot stall - 틀리는 경우가 없다?)   ret
 
 
 tip: 코드가 덜 효과적이다 하면 move 커맨드를 의심해라.
