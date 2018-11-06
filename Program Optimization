@@ -166,5 +166,7 @@ Getting data from A to B in chip:
 
 dependency diagram의 node는 micro operation을, edge는 description을 나타낸다. 그리고 I/O는 register을 나타낸다.
 
+
+
 tip: 코드가 덜 효과적이다 하면 move 커맨드를 의심해라.
 
