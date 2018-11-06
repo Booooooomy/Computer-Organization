@@ -5,7 +5,6 @@ Program Optimization: 어떤 프로그램을 더 효과적으로, 더 빠르게,
 
 그러나 위의 여러가지 이유가 서로 상충하는 경우가 있으므로 그것도 생각해줘야 한다.
 그리고 cost of complexity. optimization을 하면 보통 코드 자체가 엉망이 되곤 한다. 그래서 오히려 효율적인 코드 만든다고 시간이 오히려 더 걸리는 경우도 있다.
-
 그래서 optimization이 괜찮은 행위인지를 확인하기 위해 우리는 measure performance를 해야 한다.
 
 방법 0. 물론 big O notation이 중요하지만, 이건 가장 기초가 되며 프로그램의 효율성 여부를 가장 쉽게 평가하는 뼈대다. 그러나 실제 현장에서는 big O 가 같은 2개의 프로그램도 효율성의 차이가 나는 경우가 많다.
@@ -51,12 +50,11 @@ system CPU - kernel CPU executed on behalf of my program
             물론 이 때는 restrict라는 키워드로 둘을 구분해줌으로써 alise를 막는다.
 
 
-Optimization blocker를 만났을 때 Amdahl's law? overall speedup (old time)/(new time)
-~~ Amdahl's law를 좀 깊게 공부하자.
+optimization blockers - programmer가 고칠 수 있는 오류들
+ex) memory referencing, aliasing, function or processer call
 
 
-
-compiler가 optimize하는 요소들
+optimization blocker의 종류들:
 
 1. remove redundant statements
 필요 없는 부분 삭제: ex x = 1, y = 2, return x; 의 y = 2 부분 삭제.
@@ -88,4 +86,35 @@ else if time == night
   for each p in s, p = b;
 
 이게 더 나은 거란다. 나는 for loop이 두 번 사용되니까 그냥 안 좋을 거라고 생각했는데, 보니까 O(n)은 같고 반면에 첫 번째 녀석은 비교 구문이 계속 나오는 반면 두 번째 녀석은 한 번만 나오니까 맞는 말이다.
+
+
+Optimization blocker를 만났을 때 Amdahl's law? overall speedup (old time)/(new time)
+~~ Amdahl's law를 좀 공부하자.
+
+
+Questions:
+1. does GCC itself consider which optimization level it would use? I thought we programmers set the opt. level by adding -O2 or something on the command.
+2. how do we know which variables/ values of data would be saved in which register? for example, %rax, %rbx... is there any rule?
+
+
+
+
+
+
+**Instuction level parallelism**
+
+우선, CPU design을 모두 이해하려 하지 말자. 이건 대학원생들도 모두 이해하기 힘들다.
+
+간단히 생각하면 ILP는, 프로그램을 더욱 효율적으로 하기 위해 동시 다발적으로 인스트럭션을 돌리는 것이다.
+이를테면 프로그램 A 에 인스트럭션 1, 2, 3, 4, 5가 있으면(1과 2, 3은 dependent, 1과 4,5 independent) 1과 4나 5를 동시에 수행하는 것이다.
+이렇게 하면 인스트럭션 1, 2, 3, 4, 5를 하는 것보다 훨 빠르게 진행할 수 있다.
+
+
+Superscalar processor: 한 번의 사이클에 여러 개의 인스트럭션을 수행할 수 있는 프로세서.
+
+
+Pipelined functional units: 프로그램을 여러 개의 stage로 나눠서 동시에 할 수 있는 건 같이 해주는 것. 효율성 증가. parallism과는 조금 다르다.
+
+보통 load, store: 1, mult: 1, add: 1, div: 15 이 수준으로 cycle을 잡아먹는다.  
+
 
