@@ -9,6 +9,7 @@ Program Optimization: 어떤 프로그램을 더 효과적으로, 더 빠르게,
 그래서 optimization이 괜찮은 행위인지를 확인하기 위해 우리는 measure performance를 해야 한다.
 
 방법 0. 물론 big O notation이 중요하지만, 이건 가장 기초가 되며 프로그램의 효율성 여부를 가장 쉽게 평가하는 뼈대다. 그러나 실제 현장에서는 big O 가 같은 2개의 프로그램도 효율성의 차이가 나는 경우가 많다.
+
 방법 1.1. size measured statically: 
 $ size a.out 커맨드를 사용한다. 
 이건 text size(read-only part: instruction, constants), data size(read-write part: initialized variables), bss size(read-write part: data starts 0) 이 3개를 리턴한다.
