@@ -1,0 +1,47 @@
+장담하는데 시험을 보는 입장에서는 별로 중요하지 않는 부분일 듯.
+Floating point와 GDB가 훨 중요할 것 같다.
+
+
+**Memory Hierarchy**
+
+중요한 것은 data를 얻는 방법 등을 얻는 것.
+
+memory의 계층 구조는 다음과 같다: registers -> L1 -> L2 -> L3 -> DRAM -> Disk -> Github.
+
+교수의 컴퓨터 기종: AMD Phenom II X4 910e (2010)
+이 컴퓨터의 스펙은 이렇다: 512 KiB L2 cahce 4개, 6 MiB L3 cache, 8 GiB DRAM, 4TN disk, and some github, 64 KiB +64 KiB (Instruction+Data) L1 cache
+(Ki, Mi, Gi, Ti, Pi, Ei)
+
+이 경우 L1은 reg의 32배, L2는 L1의 16배, L3은 L2의 3배, DRAM은 L3의 1000배가 넘고, Disk는 DRAM의 500배다.
+저장하는 사이즈가 커지면 CPU로부터의 거리가 멀다는 것이고 동시에 속도와 퍼포먼스도 형편없어진다.
+잘 보면 L(cache)끼리는 크기 차이가 상대적으로 작은데 DRAM부터는 확 커진다. 왜? 전혀 다른 technology를 사용하기 때문이다.
+
+registers: really fast, but small (64 bit, 16개 그리고 각각이 몇 개의 copy를 갖고 있지만, 그래도 아주 작은 편이 아닌가).
+
+
+
+RAM: Random Access Memory(all accesses are equally fast: which is not entirely true)
+
+1. SRAM(static): faster, expensive, requires more power, more area
+                  보통은 cache가 SRAM이라고 한다.
+                  6 transistor circuit for 1 bit, and bistable(keeps its state with power = if power off, everything vanishes).
+2. DRAM(dynamic): slower, cheap, less power, less area
+                  no transistor. works by a charge on a capacitor. this slowly leaks - power가 계속 있어도 결국 서서히 잊어버린다.
+                  so constantly refreshed by the controller. loading in and out data frequently.
+                  Many DRAM chips in sequence in a memory module
+ -> momory modlue: [highest order bit of each byte] [] [] [] [] [] [] [lowest order bit of each byte]
+   Throughput advancers: 1. Page-mode DRAM: use single row strobe sequenced column strobes? vs. 2. Run components in parallel to get words.(그러나 두 개 다 thrupu만 속도를 높이지 latency랑은 노관계)
+
+
+
+NVRAM: nonvolatile RAM: survives power outages. ex) disk, electornic memories...
+
+1. PROM: programmable read-only memory.
+2. EPROM: electronically reprogrammable " (reprogrammable via separate device).
+3. EEPROM: electronically reprogrammable, and no need to use a seperate device.
+
+- Flash라고 부르기도 한다. 느리지만 DISK 대신 사용하기도 한다.
+
+
+
+Disks: usually stacked on top of each other.
