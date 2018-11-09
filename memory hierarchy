@@ -1,7 +1,3 @@
-장담하는데 시험을 보는 입장에서는 별로 중요하지 않는 부분일 듯.
-Floating point와 GDB가 훨 중요할 것 같다.
-
-
 **Memory Hierarchy**
 
 중요한 것은 data를 얻는 방법 등을 얻는 것.
@@ -45,3 +41,38 @@ NVRAM: nonvolatile RAM: survives power outages. ex) disk, electornic memories...
 
 
 Disks: usually stacked on top of each other.
+
+|-----그____   이런 식으로 여러 개의 actuator의 header가 platter(디스크 판때기)를 청진하듯 대고 있으면 디스크가 빠르게 돌면서 정보를 전달 혹은 공수.
+|-----그____   capacity: total surfaces of platters * area * track density(줄끼리의 간격) * recording density(줄 내부의 bit 간격)
+|-----그____   seek latency: header을 해당 track으로 옯기는 데 걸리는 시간, rotational latency: header을 옮긴 후 해당 부분이 올 때까지 기다리는 시간.
+
+
+
+
+자, 그럼 이제 순리를 거슬러 보자.
+지금까지는 데이터를 많이 저장할 수 있으면 상대적으로 접근하기가 어렵고 또 느리고, 빨리 접근할 수 있는 부분은 데이터를 조금밖에 저장 못하곤 했었는데, 우리는 빠르지만 많은 데이터를 저장하는 녀석을 만들고 싶은 욕망에 빠졌다.
+그 욕망은, 우리로 하여금 cache를 만들게끔 이끌어냈다.
+
+Caching: cache를 사용하는 행위가 caching이다. 그럼 cache가 뭔가?
+우리가 자주 보는 책은 책장에서 뽑아서 더 가까운 책상 위에 두는 것과 같다. CPU가 많이 쓸 것 같은 data를 cache에 저장해 두는 것이다. 참고로 cache는 SRAM이다.
+
+Cache hit: cache에 CPU가 필요한 정보가 있는 경우 <=> Cache miss: 없는 경우
+
+따로 'Cache'라는 소프트웨어나 하드웨어가 있는 것이 아니다. L1이 캐시 역할을 하려면 L2가 backing storage가 되는 것이고, L3이 캐시라면 L4가 그 역을 하는 것이다.
+backing storage의 정보를 cache에 집어넣는 방법에는 3가지가 있다.
+
+a) direct-mapped cache: backing storage의 정보의 주소의 하위 몇 바이트만 따서 그걸로 해당하는 cache에 넣어주기.
+                        이건 아주 빠르고 쉽긴 하지만 별로 안 좋은 방법이다. 왜냐하면 하위 4자리 딴다고 했을 때 10101110과 11111110이 모두 하위 네 자리 1110을 가졌기에 서로 구별할 수 없기 때문이다.
+b) (2-way, 4-way)set-associative mapping: cache를 아주 작은 여러 개의 cache set(cache line, set)으로 나눠서 거따가 정보를 집어넣기. 앞서 다룬 direct map에서의 문제점은 같은 하위 주소를 가진 놈은 하나밖에 못 넣는다는 것이었는데, set- associative는 그걸 n개로 나눈다.
+                                          이를테면 2-way는 1110의 장소를 11100과 11101의 두 개로 나눠서 장소를 넓힌 거고, 4-way는 111000 111001 111010 111011의 4개로 나눈 것이다.
+
+
+Cache miss하는 2가지 큰 이유와 해결법:
+1. 프로그램이 너무 많은 data를 필요로 해서 그 개수가 cache의 용량을 초과하는 경우 -> array의 크기를 cache에 맞춰라?
+2. Hash collision: CPU에서 cache를 뒤질 때 주로 Hash를 쓰는데, 이 때 같은 hash value에 겹치는 녀석이 여러가지가 있어서 cache의 해당 정보를 못 찾는 경우이다.
+
+Cache와 storage의 데이터 변경 시 Write hit policy: 
+1. Write-through: 즉시 쓰기. cache에 write함과 동시에 storage에도 write하는 방식 (cache와 storage 값이 항상 동일, 그러나 너무 느림)
+2. Write-back: 나중에 쓰기. cache의 변경을 하고도 바로 storage에 가는 게 아니라, cache의 다른 어떤 녀석이 변경될 때 storage에 기록하는 방식. 이건 storage에 가는 횟수를 줄이기에 상대적으로 빠르지만, cache의 변화가 실시간으로 storage에 업뎃이 안 된다는 단점 또한 있다.
+
+
