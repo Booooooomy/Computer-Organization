@@ -62,8 +62,8 @@ breakpoint 없애기:
 
 breakpoint에 걸린 후에는 instruction이나 해당 C 코드에 step in과 step over할 수 있다.  
 
-step in:   
-step over:   
+step in:   line-by-line debugging
+step over:   step over the lines and just shows the result
 
 먼저 C 코드의 다음 줄을 실행시키고 STEP INTO function 하려면  
 (gdb) step 혹은 s  
