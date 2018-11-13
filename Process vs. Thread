@@ -24,3 +24,84 @@ Process Scheduler: 둘 이상의 프로세스가 적절히 실행되도록 컨�
 
 
 Thread: 
+
+
+-------------------------------------------------------------------------------------
+-11.13.2018 lecture-
+
+ex:Intel's most recent architecture: Coffee
+
+L0 cache: micro-operation(decoded insn. no data), 1536 micro-operations, not caching RAM memories, cache line size: 6 micro-op
+          8 - way set associative, 256 cache lines(each 6 micro ops => 1536/6), 32 cache line sets(= 256/8)
+L1 I-cache: insns, 32KiB, 8-way, 64B line size, 2 threads/core : read-only라서 write-back 불가
+L1 D-cache: data, 32KiB, 8-way, 64B line size, 4-5 cycles to load, 64B/cycle load, 32B/cycle ste : write-back
+L2 (unified) cache: both insns and data, 256 KiB, 4-way, 12 cycles min : write-back
+
+여기까지는 per core 인데 L3는 per CPU다. 여러 개의 core가 공유하는 녀석.
+L3 (unified) cache(per CPU): size varies. maximum of 2MiB/core, maximum of 16-way, 42 cycles
+
+
+Summary of performance advice for caches:
+1. Don't worry about cache, code and program. Just focus on inner loops.
+2. Maximize spatial locality - ith position에 메모리 저장했다면 가능하면 i+1이나 i-1 등에 놓는 게 젤 좋다(use stride of 1). 그럼 더 빠르게 접근 가능.
+3. Maximize temporal locality - don't make several passes thru objects, just make one.
+
+
+Speedup via parallelism
+Concurrency: Application is partitioned into flows.
+Parallelism: Actually running in parallel.
+so if concurrent, it can use parallelism.
+
+Sp = T1/Tp (T1 = time to operate 1 process, Tp = time to operate p process)
+         ex) 10개 processor 사용하면 1개 쓸 때보다 10배.
+         - 그러나 이게 실제로 항상 맞는 건 아니다. 왜냐면 some overhead for concurrency support.
+absolute Sp = T1/Tp (T1 = tuned for just one processor)
+relative Sp = T1/Tp (T1 is not tuned, just run with P absolute)
+         ab과 re 중에는 relative가 좀더 compute, maintain하기 쉽다.
+         -> 보통 abSp < reSp.
+
+scaling:
+         strong scaling: "fixed size" problem. add CPU -> how much faster?
+                  공식:
+                  ex) real time applications that latency matters...
+         weak scaling: "growing" problem. add CPU -> how much faster?
+                  공식:
+                  ex) server throuput...
+
+
+[ Recall from last lecture...
+
+단점 of ILP: no change to program, but no scaling.
+단점 of SIMD: lots of changes to program. 장점: CPU의 효율적인 사용.
+
+그래서 등장한 제 3의 녀석들: MIMD(multiple insn multiple data). 종류는 thread와 process-based 의 2가지.
+         장점: fewer changes to program at higher level, more scalable than ILP, access slow devices, defer work while busy, fair access by multiple clients to single server...]
+
+
+3 concurrency approaches
+
+1. multiple processes: break a computation into multiple processes and run each on different machine. 그러나 그 과정에서 서로 연락할 수 있다.
+2. multiple threads: break a computation into multiple independent processes and run on different machine, but use only one shared memory. 서로 더 빨리 연락할 수 있지만, memory가 겹칠 수 있다.
+         그래서 higher performance, higher risk.
+3. multiplexing. event-driven: 1 CPU shared amongst muliple threads.
+
+
+장점 of multiprocessing: 서로 isolated 되어있기 때문에 다른 process가 하나의 process를 방해하는 것(race condition)에 대해서 고민 안 해도 된다. scale 잘 됨.
+         ex: BIG computation
+장점 of multithreading: multiprocessing보다 상호 간의 communication이 훨 빠르다. scale 됨. 그러나 race condition 때매 골치 많이 아프다.
+장점 of multiplexing(multithreading with 1 CPU): communication이 빠르다. 그리고 역시나 race condition 고려 안 해도 된다. 그래서 simplied code. 
+         ex: IoT
+
+그래서 programmer 입장에서는 multiprocessing이 젤 편하다.
+
+
+
+
+
+
+
+
+
+
+
+
