@@ -92,11 +92,6 @@ Optimization blocker를 만났을 때 Amdahl's law? overall speedup (old time)/(
 ~~ Amdahl's law를 좀 공부하자.
 
 
-Questions:
-1. does GCC itself consider which optimization level it would use? I thought we programmers set the opt. level by adding -O2 or something on the command.
-2. how do we know which variables/ values of data would be saved in which register? for example, %rax, %rbx... is there any rule?
-
-
 
 
 
