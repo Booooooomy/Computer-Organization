@@ -1,0 +1,25 @@
+Syncronization.
+
+processer: (1) fork()를 하면 2개 이상의 clone이 생긴다. 서로 유일하게 다른 것은 rax. wait_pid.
+           그리고 waitpid(...)를 하면 부모 node는 자식 node가 죽을 때까지 아무 것도 하지 않는다.
+           (2) child는 자기가 죽을 때쯤 부모에게 알린다. 예를 들어 27 때문에 죽는다면 exit(27).
+threads: fork 대신 pthread_create를, waitpid 대신 pthread_join을, exit 대신 pthread_exit.
+            추가로 pthread_cancel() (ask another thread to kill itself),
+            pthread_detach() (cause self to be non-joinable)...
+multiplexed:
+
+sample program:
+
+'''C++
+int cnt; // global variable
+int f(int n)
+{
+  for(cnt = NULL; cnt < n; cnt++)
+    foo(cnt);
+}
+'''
+
+위의 프로그램: 엉망. 왜? global variable이 foo에 의해서 바뀔 수 있기 때문. 그러나 우리는 foo가 cnt에 관여 안 한다고 가정하자. 그럼 ok.
+
+If: 2 threads execute f at the same time: interthread communication 불가, cnt 값이 업뎃이 안 됌.
+-> 해결책: int cnt 대신 int volatile cnt를 하면 된다. 이 친구가 interprocess communication 가능하게 함.
