@@ -1,10 +1,12 @@
-Process, Scheculer.
+Process, Scheculer, Thread
 
 Process: 메인 메모리(RAM)에서 "실행 중"인 프로그램. <- too vague.
          정확히 말하면, 프로세스가 진행하면서 occupy하는 모든 대상(메모리, 가상 메모리, register set...)을 프로세스라고 할 수 있다.
          예를 들어, 프로세스 A와 프로세스 B가 진행할 때 RAM과 cache, 그리고 register set의 데이타들이 달라지므로 모두 프로세스라고 칭할 수 있다.
 
-Context Switching: 프로세스 A에서 프로세스 B로 스위치하는 과정. 바꿀 때에는 프로세스 A에서 사용된 data들로 찬 register set을 다른 곳에 저장해두고 set은 비운 뒤 프로세스 B의 데이타들로 그곳을 채우는 것.
+         구성: code 영역, data 영역(gobal variable), heap 영역(동적 할당), stack 영역(local variable, parameter)의 4가지 영역으로 구성되어 있다.
+
+Context Switching: 프로세스 A에서 프로세스 B로 스위치하는 과정. 바꿀 때에는 프로세스 A에서 사용된 data들로 찬 register set을 다른 곳에 저장해두고 set은 비운 뒤 프로세스 B의 데이타들로 그곳을 채우는 것, 그리고 cache도 버리고 새로 만들어야.
                    참고로 1초에도 수십 번씩 switching이 일어난다. 그래서 context switching 할 때 마다 set을 비우고 채우고 하는 것은 꽤나 부담스런 일이다.
                    그래서 나온 방법이, register set을 여러 개 만들어서 프로세스에 하나의 set을 할당해버리는 것이다. 이러면 CS가 일어나도 set을 비우고 치우는 일은 안 해도 되니까.
 
@@ -23,7 +25,8 @@ Process Scheduler: 둘 이상의 프로세스가 적절히 실행되도록 컨�
 
 
 
-Thread: 
+Thread: 하나의 process에도 2개 이상의 흐름이 있는 경우가 있다. ex) 2인용 테트리스.
+         
 
 
 -------------------------------------------------------------------------------------
@@ -83,6 +86,27 @@ scaling:
 1. multiple processes: break a computation into multiple processes and run each on different machine. 그러나 그 과정에서 서로 연락할 수 있다.
 2. multiple threads: break a computation into multiple independent processes and run on different machine, but use only one shared memory. 서로 더 빨리 연락할 수 있지만, memory가 겹칠 수 있다.
          그래서 higher performance, higher risk.
+         
+         Shared variables in multithreaded application:
+                  -Fast IPC interprocess communication.
+                  -Each thread has its own %rip, %rax... all the registers.
+                  -But, it doesn't have its own RAM. one RAM is shared by all the threads.
+                  -each thread has their own [program/data/stacks] thing.
+                  
+                  전역변수 static int x;는 data에 가서 저장된다.
+                  static int* p;
+                  {지역변수 int x; 는 레지스터나 스택에 가서 저장된다.
+                  p = &x; 하면 엉망된다. 왜냐면 global 포인터로 가리켰기 때문에 모든 thread가 다 볼 수 있어서 race 문제가 생긴다?
+                  그리고 q
+                  }
+         
+         note: 보통 1개의 operation 하는데 1 milli-second 걸린다.
+         
+         thread vs. core
+         thread는 program trying to run on a core, core는 hardware to run a thread.
+         T threads, C cores(T>C)면 scheduler가 결정한다. 여기서도 마찬가지로 context switch 생긴다.
+         
+         
 3. multiplexing. event-driven: 1 CPU shared amongst muliple threads.
 
 
