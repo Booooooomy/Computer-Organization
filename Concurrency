@@ -4,7 +4,7 @@ Process: 메인 메모리(RAM)에서 "실행 중"인 프로그램. <- too vague.
          정확히 말하면, 프로세스가 진행하면서 occupy하는 모든 대상(메모리, 가상 메모리, register set...)을 프로세스라고 할 수 있다.
          예를 들어, 프로세스 A와 프로세스 B가 진행할 때 RAM과 cache, 그리고 register set의 데이타들이 달라지므로 모두 프로세스라고 칭할 수 있다.
 
-         구성: code 영역, data 영역(gobal variable), heap 영역(동적 할당), stack 영역(local variable, parameter)의 4가지 영역.
+         구성: code 영역, data 영역(global variable), heap 영역(동적 할당), stack 영역(local variable, parameter)의 4가지 영역.
 
 Context Switching: 프로세스 A에서 프로세스 B로 스위치하는 과정. 
   프로세스 A에서 사용된 data들로 찬 register set을 다른 곳에 저장해두고 set은 비운 뒤 프로세스 B의 데이타들로 그곳을 채우는 것. 
@@ -35,7 +35,7 @@ Thread: 하나의 process에도 2개 이상의 흐름이 있는 경우가 있다
 -------------------------------------------------------------------------------------
 -11.13.2018 lecture-
 
-* side-note: processes each have their own address space, but threads share address space with other threads within a process.
+*side-note: processes each have their own address space, but threads share address space with other threads within a process.
              threads maintain their own registers.
 
 Speedup via parallelism
@@ -53,14 +53,14 @@ relative Sp = T1/Tp (T1 is not tuned, just run with P absolute)
 
 scaling:
          strong scaling: "fixed size" problem. add CPU -> how much faster?
-                  공식:
+                  공식: (t1/(N * tN)) * 100 : t1 = 1개의 프로세서로 돌리는데 걸리는 시간, tN = N개로.
                   ex) real time applications that latency matters...
-         weak scaling: "growing" problem. add CPU -> how much faster?
-                  공식:
+         weak scaling: "growing" problem. "fixed problem size per processor"add CPU -> how much faster?
+                  공식: (t1/ tN) * 100
                   ex) server throuput...
 
 
-[ Recall from last lecture...
+[ Recall from the last lecture...
 
 단점 of ILP: no change to program, but no scaling.
 단점 of SIMD: lots of changes to program. 장점: CPU의 효율적인 사용.
