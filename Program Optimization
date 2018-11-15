@@ -44,6 +44,9 @@ system CPU - kernel CPU executed on behalf of my program
             물론 이 때는 restrict라는 키워드로 둘을 구분해줌으로써 alise를 막는다.
 
 
+Amdahl's Law를 사용해서 optimization을 사용하는 게 효율적인지 여부를 확인 가능하다.
+공식:
+        Speedup = 1/ ((1-a) + a/k): a = 향상 가능 부분, k = 향상 배수
 
 
 **optimization blockers - programmer가 고칠 수 있는 오류들**
