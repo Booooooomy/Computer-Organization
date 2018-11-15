@@ -8,30 +8,24 @@ Program Optimization: 어떤 프로그램을 더 효과적으로, 더 빠르게,
 그래서 optimization이 괜찮은 행위인지를 확인하기 위해 우리는 measure performance를 해야 한다.
 
 방법 0. 물론 big O notation이 중요하지만, 이건 가장 기초가 되며 프로그램의 효율성 여부를 가장 쉽게 평가하는 뼈대다. 그러나 실제 현장에서는 big O 가 같은 2개의 프로그램도 효율성의 차이가 나는 경우가 많다.
-
 방법 1.1. size measured statically: 
 $ size a.out 커맨드를 사용한다. 
 이건 text size(read-only part: instruction, constants), data size(read-write part: initialized variables), bss size(read-write part: data starts 0) 이 3개를 리턴한다.
 text size와 data size는 flash를 빼먹는다.
-
 방법 1.2. size measured dynamically
-
 방법 2.1. clock time:
 $ size/usr/bin/gcc $ size/usr/bin/size
 그야말로 시간이 얼마나 걸리는지?
-
 ***** 방법 2.2. CPU time: <-------------------------------------------- 수업에서 주로 다룰 내용이다.
-$ time/a.out
-clock(real)
+Shell에서는 $ time 커맨드를 쓰면 된다. $ time file.txt 이런 식으로.
+C에서는 clock_gettime() 함수를 쓰면 된다.
 user CPU - my program's CPU
 system CPU - kernel CPU executed on behalf of my program
-
 방법 3. I/O count: <------------------------------------------ big data, machine learning에서는 3, 4가 주로 중요해지는 추세.
-                                                                                     
 방법 4. Network latency(DNS latency): <---------------------------------------------↙
 
 
-**방법 2.2. CPU time에 관한 deeper thoughts**
+**방법 2.2.의 CPU time에 관한 deeper thoughts**
 2 kinds of real CPU time performance: 
 
 1. high throughput(operations/second)
@@ -50,7 +44,9 @@ system CPU - kernel CPU executed on behalf of my program
             물론 이 때는 restrict라는 키워드로 둘을 구분해줌으로써 alise를 막는다.
 
 
-optimization blockers - programmer가 고칠 수 있는 오류들
+
+
+**optimization blockers - programmer가 고칠 수 있는 오류들**
 ex) memory referencing, aliasing, function or processer call
 
 
@@ -71,7 +67,7 @@ c++에서 x = x+1; 는 compiler가 x++로 바꾼다. 메모리도 덜 쓰고, �
 
 5. unrolling a loop
 jump instruction은 시간을 가장 많이 뺏어먹는 놈 중에 하나다. 그래서 프로그램의 진행에서 jump의 개수를 가능하면 줄이려 한다.
-예를 들어 for i = 0 to 100 print 1; 은 for i = 0 to 20 print 1; print 1; print 1; print 1; print 1;
+예를 들어 for i = 0 to 100 print 1; 은 for i = 0 to 20 {print 1; print 1; print 1; print 1; print 1;}
 이런 식으로 for loop(정확히 말하면 jump instruction)의 횟수 자체를 줄이는 것.
 
 6. Extract an unchanging condition
@@ -84,58 +80,47 @@ if time == day
   for each p in s, p = y;
 else if time == night
   for each p in s, p = b;
+ 이게 더 나은 거란다. 나는 for loop이 두 번 사용되니까 그냥 안 좋을 거라고 생각했는데, 보니까 O(n)은 같고 반면에 첫 번째 녀석은 비교 구문이 계속 나오는 반면 두 번째 녀석은 한 번만 나오니까 맞는 말이다.
 
-이게 더 나은 거란다. 나는 for loop이 두 번 사용되니까 그냥 안 좋을 거라고 생각했는데, 보니까 O(n)은 같고 반면에 첫 번째 녀석은 비교 구문이 계속 나오는 반면 두 번째 녀석은 한 번만 나오니까 맞는 말이다.
+7. Hoisting 
+for(int i = 0; i < list.num(); i++)
+{list.num을 바꾸지 않는 어떤 함수}
 
-
-Optimization blocker를 만났을 때 Amdahl's law? overall speedup (old time)/(new time)
-~~ Amdahl's law를 좀 공부하자.
-
-
-
-
+이 때 list.num()은 매 loop마다 쓸데없이 소환된다.
+그래서 저 함수 전에 int k = list.num(); 하고 for loop에 k를 대신 넣으면 훨 빨라진다.
 
 
-**Instuction Level Parallelism**
 
-prelude:
 
-우선, CPU design을 모두 이해하려 하지 말자. 이건 대학원생들도 모두 이해하기 힘들다.
+**Instuction-Level Parallelism**
+
+prelude: 우선, CPU design을 모두 완벽히 이해하려 하지 말자. 이건 대학원생들도 모두 이해하기 힘들다.
 
 ILP의 이유는 근본적으로는 프로그램의 실행 시간을 줄여 더 효율적인 프로그래밍을 하기 위함이다.
 우리는 ILP의 미시적 관점에 주목할 것이다. 컴퓨터 하나에는 여러 개의 processor가 있다. 하나의 processor에는 여러 개의 core가 있다.
-우리는 하나의 core(single instruction pointer)에서 여러 개의 operations를 동시에 돌리는 상당히 미시적인 관점에 주목할 것이다.
-
-
-
+우리는 하나의 core(single instruction pointer)에서 여러 개의 operations를 동시에 돌리는 상당히 미시적인 관점(µ-ops)에 주목할 것이다.
 
 하나의 core에서 여러 개의 operation을 돌리는 방법은 2가지가 있는데,
 
 첫째이자 간단한 방법은, SIMD(Single Instruction Multiple Data):
-ex) pshufd256 instruction: integer를 shuffle하는 함수. 256bit 레지스터에 있는 어떤 수를 8조각으로 나눠서 각 조각의 order를 섞어서 새로운 256bit 레지스터에 저장하는 것.
-그렇게까지 좋은 방법은 아니다. 왜냐하면 read도 하기 어렵기 때문에? 이건 구글링해서 다시 알아보자.
+ex) pshufd256 instruction: integer를 shuffle하는 함수. 256bit 레지스터에 있는 어떤 수를 8조각으로 나눠서 각 조각의 order를 섞어서 새로운 256bit 레지스터에 저장하는 것(별로).
 
-둘째이자 더욱 중요한 방법은: ILP(instruction level parallel):
-위의 저 이상한 pshuf어쩌고 같은 걸 쓰지 않고 다만 지금까지 배운 것들: move, add, sub 등을 사용한다.
-완벽하게까지는 아니더라도 ILP의 대략적인 내용은 알아야 마땅하다. microarchitecture of CPU을 공부하자.
-micro-operation을 알아보자. 참고로 이건 intel, AMR(AMD) 등의 회사들이 의도적으로 숨기려는 정보이기도 하다. 
-첫째 이유는 trade secrets(intel이 사용하는 기업비밀)이기 때문이고, 둘째 이유는 이 operation은 프로그램을 바꾸지 않고도 ILP를 가능하게 하기 때문이다.
+둘째이자 중요한 방법은: ILP(instruction level parallel): 
+- Pipelining, Out-Of-Order execution
 
+1. Pipelining:
+add, mov 등과 같은 X86 instruction을 low-level micro operation으로 쪼개고 각각의 operation을 parallel하게 pipelining 하는 것. 
+micro-operation? 참고로 이건 intel, AMR(AMD) 등의 회사들이 의도적으로 숨기려는 정보이기도 하다. 
 
-ILP 하는 방법은 2가지가 있다.
-
-1. microoperation
-
-2. pipelining
   <general instruction execution stages>
   IF: insn fetch: memory에서 insn 빼기
   ID: insn decode: 해당 insn이 뭐하는지
-  EX: execution: 실핼하기.
+  EX: execution: 실행하기.
   MEM: memory access: 결과물을 memory에 저장하기
   WB: writeback: 결과물을 register에 저장하기
 
 ex: insn1, insn2가 있을 때 그냥 실행하면 insn1의 IF ID EX MEM WE 가 모두 끝난 뒤에 insn2의 IF ID EX MEM WE 가 실행된다 (10 cycles).
-    pipe line을 사용하면, insn1의 IF가 끝나고 ID가 시작하는 시점에 insn2의 IF가 시작되면서, 전체 cycle은 6밖에 되지 않는다.
+    pipeline을 사용하면, insn1의 IF가 끝나고 ID가 시작하는 시점에 insn2의 IF가 시작되면서, 전체 cycle은 6밖에 되지 않는다.
 
 보통 load, store: 1, mult: 1, add: 1, div: 15 이 수준으로 cycle을 잡아먹는다.  
 중요한 것은, insn1과 insn2가 동시에 작동하려면 두 개가 서로 independent 해야한다.
@@ -143,15 +128,87 @@ ex: insn1, insn2가 있을 때 그냥 실행하면 insn1의 IF ID EX MEM WE 가 
 pipelining에도 보통 2개의 문제가 있는데, 
   1. phases are not equally long in time 일 경우가 있고(이 경우 시간이 긴 녀석에 시간이 짧은 녀석이 맞추기 때문에 space가 생긴다)
   2. jump instruction: jump가 등장하면 jump를 예상하지 못한 시절에 해놓은 모든 정보들이 필요 없어지기도 한다. 이 때는 그 전까지 했던 것들을 삭제하고 jump 이후에 다시 새로운 정보와 함께 시작한다.
-    그래서 jump는 cpu를 멈추고(stall) performance를 엉망으로 만들기 때문에 bad news라고 할 수 있었는데, 이 문제를 해결할 방법은 2개다.
-    1. decode unconditional jumps quickly, and fetch from the destination. 이러면 jump가 끝날 때까지 기다리지 않아도 된다.
+    그래서 jump는 cpu를 멈추고(stall) performance를 엉망으로 만들기 때문에 bad news라고 할 수 있는데, 이 문제를 해결할 방법은 2개다.
+    1. decode unconditional jumps quickly, and fetch from the destination. 이러면 jump가 끝날 때까지 기다리지 않아도 된다. (별로)
     2. branch prediction: hardware cache에 저장된 정보를 통해 jump가 unconditional인지 확인 후 기라면 곧장 다음 insn을 해주는 것.
         conditional이면 어떻게 하냐면 이전의 jump 결과를 본 후 경험적 판단에 의해 jump의 결과를 유추한 후에 그것에 기반하여 다음 insn을 실행한다. 만약 유추가 틀렸다면 1과 같은 결과 초래.
         최악의 경우는 jump의 여부가 50% 50%인 경우. 이 경우는 jump의 결과를 맞힐 가능성이 절반 뿐이 안 되서 프로그램을 확 느리게 만든다.
+  3. data hazzard: 다음 operation이 이전 operation의 데이터를 필요로 하는 경우 stall해야 한다.
     
+    
+Pipelining을 하기 위해 필요한 하드웨어:
 Superscalar processor: 한 번의 사이클에 여러 개의 인스트럭션을 수행할 수 있는 프로세서.
 
-3. Out-of-Order(simplified ver.)
+위의 3의 stall이 일어나는 간단한 예제를 보자 (하나의 insn이 4개의 micro-operation이라고 가정).
+
+mov 10 r1  |   |   |   |   |
+mov 11 r2      |   |   | * |   | <== 둘째 줄의 3단계(기록 단계라고 가정)에서 r2를 아직 기록하지도 않았는데
+add r1 r2          |   | * |   |   | 셋째 줄의 2단계(실행 단계라고 가정)에서 r1 + r2를 실행하려 해서 충돌이 일어난다. 이 때 우리는 한 사이클을 쉰다.
+mov 10 r3
+ret
+
+그래서 실제로는 이렇게 stall 현상이 일어난다.
+
+mov 10 r1  |   |   |   |   |
+mov 11 r2      |   |   | * |   |
+        아무 짓도 안 하고 사이클 하나 흘려 보내고 
+add r1 r2              |   | * |   |   | 
+mov 10 r3
+ret
+
+Super scalar(하드웨어): pipelinining의 upgraded ver.
+
+pipelining 을 한 번에 2개씩 ㄱㄱ. pipelining보다 더 빠르다.
+ ||||
+ ||||
+  ||||
+  ||||
+
+
+
+
+
+
+
+
+
+
+
+2. Out-of-Order(simplified ver.)
+Pipelining의 문제 중 앞서 언급한 3. data hazzard를 좀 더 빠르게 처리하기 위한 기술.
+
+옛날에는 CPU가 정석대로 first come, first served의 정신에 따라 명령어를 오는 순서대로 처리(in-order)했는데,
+나중에 일부 명령어는 새치기를 하는 게(out-of-order) 허용될 뿐만 아니라 프로그램을 더욱 빠르게 끝낼 수 있다는 걸 발견.
+
+In-order:
+1. Fetch the instruction
+2. If inputs available, dispatch the instruction to functional unit. If not, wait until available.
+3. Instruction executed by functional unit.
+4. Functional unit writes results back to register file.
+
+Out-of-order:
+1. Fetch the instruction
+2. Dispatch instruction to instruction cache(queue).
+3. Insturction waits in queue until inputs available. **Allowed to leave queue before older instructions(이게 포인트)**.
+4. When inputs available, instruction sent to functional unit and executed.
+5. Results queued.
+6. After older instructions have written their results, this instruction get to write its results.
+
+In-order과 같은 점: instruction을 fetch해서 input이 available할 때까지 기다렸다가 functional unit으로 보내서 execute 한 후 write back 하는 전체 틀은 비슷.
+In-order과 다른 점: instruction을 instruction queue에 집어넣고 순서를 기다리는 것, 그리고 result를 또 다시 queue에 넣고 기다리는 것.
+
+
+ex) 위의 예제에서
+ 
+mov 10 r1  |   |   |   |   |
+mov 11 r2      |   |   | * |   |
+mov 10 r3          |   |   |   |
+add r1 r2              |   | * |   |   | 
+ret
+
+이렇게 순서를 바꿔 주는 것. 그러면 소위 '아무 짓도 안 하는'  시간이 없어지거나 적어지고 효율을 늘릴 수 있다.
+
+
 ICU(instruction control unit): 다음 insn이 뭘까를 결정하는 녀석. 이 안에 'fetch'가 어느 address에 있는 insn을 할까 결정 후 그걸 'Instruction cache'에 보내면 그게 관련 정보를 'decode'에 보내서 거기서 EU의 reservation system에 마이크로 오퍼레이션을 보내게 한다.
 EU(execution unit): L1 cache로부터 fetch가 다음 insn에 대한 정보를 꺼내간다. 그리고 종착지인 rs가 EU에 있다. 여기서 계산이 된 후 결과값은 EU 내부의 data cache에 저장되고 그건 필요한 경우 register file에도 저장된다.
 
@@ -161,10 +218,8 @@ Getting data from A to B in chip:
 
 dependency diagram의 node는 micro operation을, edge는 description을 나타낸다. 그리고 I/O는 register을 나타낸다.
 
-loop unrolling:
-reassociation transformation:
 register spilling: 만약 register가 16갠데 local variable이 30개일 때: 우선 꼭 필요한 10개의 local v 한테 register 10개를 배정하고 나머지 6개로 나머지 20개 loc variable을 stack에 배정한 후 돌림빵한다.
-conditional moves: x = (a?b:c) 이면 (x,b,c 레지스터 a 조건문): movl c x   test a   cmovl b x(cannot stall - 틀리는 경우가 없다?)   ret
+conditional moves: x = (a?b:c) 이면 (x,b,c 레지스터 a 조건문): movl c x   test a   cmovl b x   ret <- case A or B 일 때 우선 하나를 해 두고 맞으면 그걸로 가고 아니면 바꾸고.
 
 
 tip: 코드가 덜 효과적이다 하면 move 커맨드를 의심해라.
