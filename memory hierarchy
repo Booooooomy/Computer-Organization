@@ -61,6 +61,16 @@ a) direct-mapped cache: backing storage의 정보의 주소의 하위 몇 바이
 b) (2-way, 4-way)set-associative mapping: cache를 아주 작은 여러 개의 cache set(cache line, set)으로 나눠서 거따가 정보를 집어넣기. 앞서 다룬 direct map에서의 문제점은 같은 하위 주소를 가진 놈은 하나밖에 못 넣는다는 것이었는데, set- associative는 그걸 n개로 나눈다.
                                           이를테면 2-way는 1110의 장소를 11100과 11101의 두 개로 나눠서 같은 하위 bit를 가진 2개의 정보를 받고, 4-way는 111000 111001 111010 111011의 4개로 나눠 4개의 정보를 받는다.
 
+L1 cache는 보통 2-4 cycle, L2 cache는 10, L3 cache는 30-40 cycle 걸림.
+
+Locality: 
+Spatial locality: 메인메모리에서 CPU가 요청한 주소지점의 데이터에 인접한 주소의 데이터들이 앞으로 참조될 가능성이 높음을 뜻함.
+Temporal locality: 한 번 참조되었던 데이터는 후에 다시 참조될 가능성이 높음을 뜻함.
+
+
+
+
+
 
 Cache miss하는 2가지 큰 이유와 해결법:
 1. 프로그램이 너무 많은 data를 필요로 해서 그 개수가 cache의 용량을 초과하는 경우 -> array의 크기를 cache에 맞춰라?
