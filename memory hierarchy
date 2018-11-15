@@ -17,7 +17,7 @@ RAM: Random Access Memory(all accesses are equally fast: which is not entirely t
 1. SRAM(static): faster, expensive, requires more power, more area
                   보통은 cache가 SRAM이라고 한다.
                   6 transistor circuit for 1 bit, and bistable(volatile = if power off, everything vanishes).
-2. DRAM(dynamic): slower, cheap, less power, less area
+2. DRAM(dynamic): slower, cheap, less power, less area, also volatile.
                   no transistor. works by a charge on a capacitor. this slowly leaks - power가 계속 있어도 결국 서서히 잊어버린다.
                   so constantly refreshed by the controller. loading in and out data frequently.
                   Many DRAM chips in sequence in a memory module
