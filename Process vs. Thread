@@ -32,23 +32,6 @@ Thread: 하나의 process에도 2개 이상의 흐름이 있는 경우가 있다
 -------------------------------------------------------------------------------------
 -11.13.2018 lecture-
 
-ex:Intel's most recent architecture: Coffee
-
-L0 cache: micro-operation(decoded insn. no data), 1536 micro-operations, not caching RAM memories, cache line size: 6 micro-op
-          8 - way set associative, 256 cache lines(each 6 micro ops => 1536/6), 32 cache line sets(= 256/8)
-L1 I-cache: insns, 32KiB, 8-way, 64B line size, 2 threads/core : read-only라서 write-back 불가
-L1 D-cache: data, 32KiB, 8-way, 64B line size, 4-5 cycles to load, 64B/cycle load, 32B/cycle ste : write-back
-L2 (unified) cache: both insns and data, 256 KiB, 4-way, 12 cycles min : write-back
-
-여기까지는 per core 인데 L3는 per CPU다. 여러 개의 core가 공유하는 녀석.
-L3 (unified) cache(per CPU): size varies. maximum of 2MiB/core, maximum of 16-way, 42 cycles
-
-
-Summary of performance advice for caches:
-1. Don't worry about cache, code and program. Just focus on inner loops.
-2. Maximize spatial locality - ith position에 메모리 저장했다면 가능하면 i+1이나 i-1 등에 놓는 게 젤 좋다(use stride of 1). 그럼 더 빠르게 접근 가능.
-3. Maximize temporal locality - don't make several passes thru objects, just make one.
-
 
 Speedup via parallelism
 Concurrency: Application is partitioned into flows.
