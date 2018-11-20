@@ -1,5 +1,49 @@
 **Thread Synchronization(동기화)**
 
+Each thread has: registers, stakcs,..
+threads share: program, static data, heap(malloc, new), file descriptions, child process IDs... -> 모든 thread가 공유한다. 책임도 함께 진다.
+
+BIG PROBLEM of using Threads: Threads can stomp on each others' work.
+
+쉬운 예제:
+int cnt; // global variable
+...
+{...cnt++;...} 를 multi thread로 구동했을 때
+
+movl cnt, %eax
+addl $1, %eax
+movl %eax, cnt
+
+의 과정에서 첫째 줄과 둘째 줄이 서로 다른 thread에 의해 동시 구동되면서 순서를 엉망으로 만들고 잘못된 결과를 초래한다.
+
+사실 global variable을 정의할 때 int volatile cnt; 할 수 있지만 이것도 좋은 방법은 아니다.
+
+
+그리하여 나온 좋은 방법들:
+
+0. Don't share state among threads.
+ex)
+time_t t; // 1970-01-01:00:00부터 시작된 카운트. 전역변수.
+struct tm *tm;
+tm = localtime(&t);
+printf("%d-%d-%d", tm->tm_year, tm->tm_mon, tm->tm_day)
+라는 녀석을 돌리고 두 개 이상의 thread에게 접근을 가능하게 하면 에러가 생기는 때가 생긴다.
+-> 해결법:
+{
+time_t; // 지역변수.
+struct tm m;
+tm = localtime_r(&t, &m);
+printf(same);
+}
+이리 하면 우선 전역변수가 없어지니 overlap 할 일이 없고, 각각의 thread는 서로 다른 &m이 있으니 문제 해결.
+후자는 reentrant, 전자는 not reentrant. reentrant: recursion,, signal handling, multiple threads...
+
+1. Share the state, but if a thread wants to write, the thread reads to get a lock on the part it's writing.
+global lock: one lock for all the shared state(simpler reliable)
+small region lock: one lock for each small region(more parallelism)
+
+----------------------------------------------------------------------------------------------------------------------------------
+
 thread synchronization에는 크게 2가지의 동기화가 있다.
 
 -둘 이상의 thread가 동시에 한 메모리에 접근을 하면 문제가 생긴다. 그 원인을 제공하는 코드블럭을 임계영역(critical section)이라고 한다.
@@ -80,6 +124,53 @@ thread가 열쇠를 획득할 때 필요한 함수인 WaitForSingleObject가 한
 반환할 때 필요한 함수인 ReleaseMutex가 한 번 불릴 때마다 semaphore count가 +1이 된다. 
 mutex와 같은 방식으로 count가 0이 아닐 때는 signaled 상태이다가, 0이 되는 순간 non-signaled로 바뀐다.
 
+Eggert ver.
+'''C++
+#include <semaphore.h>
+int sem_init(sem_t *s, int flag, unsigned);
+int sem_wait(sem_t *); // 위의 wait과 같음, decrement a count.
+int sem_post(sem_t *); // 위의 release와 같음, increment a count.
+'''
+
+ex)
+'''C++
+int but[128];
+unsigned front, near;
+int insert(int p)
+{
+buf[rear++%128] = p;
+}
+int remove(void)
+{
+return buf[front++%128];
+}
+/*의 꼴이 있을 때, insert와 remove가 두 개의 다른 thread에 의해 동시에 같은 element에 접근하는 등의 문제를 해결하기 위해 semaphore를 쓴다.
+두 개의 semaphore - 하나는 위의 문제 해결을 위해, 그리고 하나는 empty queue에서 remove하는 것을 막기 위해.
+이 외에도 다양한 이유로 여러 개의 semaphore를 사용할 수 있다*/
+
+sem_t s;
+sem_init(&s, null, 128);
+sem_t u;
+sem_init(&s, null, null);
+
+int but[128];
+unsigned front, near;
+int insert(int p)
+{
+sem_post(&s);
+buf[rear++%128] = p;
+sem_post(&u)
+}
+int remove(void)
+{
+sem_wait(&u);
+int i = buf[front++%128];
+sem_post(&s);
+return i;
+}
+'''
+
+* safe한 code 만들기: 동시에 write하는 녀석이나 특정한 데이터를 대상으로 동시에 read와 write가 여러 군데에서 일어난다면 race condition 확인.
 
 2. 순서 접근 동기화:
 
@@ -93,3 +184,10 @@ kernel이 signaled냐 non-signaled냐의 상태를 변경해주는 방법에는 
 
 manual-reset mode: setevent와 resetevent모두 함수 호출로 kernel 상태 변경.
 auto-reset mode: setevent는 여전히 수동, 그러나 waitforsingleobject를 사용해서 resetevent함수 대신 사용.
+
+
+
+
+
+
+
