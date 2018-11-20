@@ -186,7 +186,9 @@ manual-reset mode: setevent와 resetevent모두 함수 호출로 kernel 상태 �
 auto-reset mode: setevent는 여전히 수동, 그러나 waitforsingleobject를 사용해서 resetevent함수 대신 사용.
 
 
+---------------------------------------------------------------------------------------------------------------------------------
 
+and Eggert talks about multiprocess webservers...
 
 
 
