@@ -1,0 +1,146 @@
+Beomjoo Kim, 605-128-830
+
+1. I downloaded openMP tar file from the site, then I moved the file to my seasnet server by using scp command.
+scp openmplab.tgz beomjoo@lnxsrv.seas.ucla.edu:
+
+2. Then I untarred it by using a following command.
+tar -xvf openmplab.tgz
+
+3. I then measured the file, like how fast it runs.
+$ make seq GPROF=1
+
+I make the program with GPROF this time and check which part of the code we can improve best. we got this result.
+
+$ gprof seq | less
+
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total           
+ time   seconds   seconds    calls  ms/call  ms/call  name    
+ 71.30      0.47     0.47       15    31.37    32.51  func1
+ 13.65      0.56     0.09  5177344     0.00     0.00  rand2
+  3.03      0.58     0.02   491520     0.00     0.00  findIndexBin
+  3.03      0.60     0.02       15     1.33     2.67  func5
+  3.03      0.62     0.02        2    10.01    10.01  init
+  3.03      0.64     0.02        1    20.02    20.02  imdilateDisk
+  1.52      0.65     0.01       15     0.67     0.67  func2
+  1.52      0.66     0.01        1    10.01   123.06  sequence
+  0.00      0.66     0.00   983042     0.00     0.00  round
+  0.00      0.66     0.00       16     0.00     0.00  dilateMatrix
+  0.00      0.66     0.00       15     0.00     0.00  func3
+  0.00      0.66     0.00       15     0.00     0.00  func4
+  0.00      0.66     0.00       15     0.00     0.00  rand1
+  0.00      0.66     0.00        4     0.00     0.00  get_time
+  0.00      0.66     0.00        2     0.00     0.00  elapsed_time
+  0.00      0.66     0.00        1     0.00    73.00  addSeed
+  0.00      0.66     0.00        1     0.00     0.00  fillMatrix
+  0.00      0.66     0.00        1     0.00   537.75  filter
+  0.00      0.66     0.00        1     0.00     0.00  func0
+  0.00      0.66     0.00        1     0.00     0.00  getNeighbors
+
+According to the chart, func1 takes significant amount of time....
+
+4.
+
+$ make clean
+$ make seq
+$ ./seq
+FUNC TIME : 0.600032  <-- that's extremely slow... 0.600032 for running such a simple code..?
+TOTAL TIME : 2.691008
+
+so I started modifying the codes...
+
+5.
+
+I used 30 threads out of 32 just because I didn't want to spend all of the threads busy at every moment. I tried 31 and 29 too but 30 seemed to be most stable and quick.
+
+func0:
+I declared new variables such as doux, douy, weight and declared weight outside of the loop so that it doesn't have to be declared every time as loop loops.
+
+func1:
+I first declared new variable k to simplify 2*j. Also, I declared arrayIndex, arrayValue, indexValue so that unnecessarily repeated terms can be declared only once per a loop.
+
+func2:
+I made a variable weight so that I could reduce the number of for loops from 3 to 2, using new variable weight as a parameter. 
+Also, I used reduction(+:) command as we were taught from the discussion session.
+
+func5:
+I made a new variable l to represent n-1. Also, I made wei so that 1/double n is not declared for every single loop.
+
+6.
+After I modified function 0, 1, 2, 5 I checked the new speed:
+$ make clean
+$ make omp
+$ ./omp
+
+now I have
+
+FUNC TIME : 0.134089
+TOTAL TIME : 2.694236
+
+The speedup is 0.600032 / 0.134089 = 4.48X, which is bigger than 3.5X.
+
+7. Checking correctness
+
+[beomjoo@lnxsrv02 ~/openmplab]
+$ make check
+gcc -o omp  -O3 -fopenmp filter.c main.c func.c util.c -lm
+cp omp filter
+./filter
+FUNC TIME : 0.133127
+TOTAL TIME : 2.686752
+diff --brief correct.txt output.txt
+
+there is no error with this.
+
+8. memory leakage?
+
+$ make omp MTRACE=1
+$ ./omp
+$ make checkmem
+
+this actually showed some memory leaks as following:
+
+[beomjoo@lnxsrv02 ~/openmplab]$ make checkmem
+mtrace filter mtrace.out || true
+
+Memory not freed:
+-----------------
+           Address     Size     Caller
+0x0000000002681060   0x1ad0  at 0x39cdc042b9
+0x0000000002682b40     0xc0  at 0x39cdc042b9
+0x0000000002682c10     0xf8  at 0x39cdc04269
+0x0000000002682d10    0x240  at 0x39bd811d03
+0x0000000002682f60    0x240  at 0x39bd811d03
+0x00000000026831b0    0x240  at 0x39bd811d03
+0x0000000002683400    0x240  at 0x39bd811d03
+0x0000000002683650    0x240  at 0x39bd811d03
+0x00000000026838a0    0x240  at 0x39bd811d03
+0x0000000002683af0    0x240  at 0x39bd811d03
+0x0000000002683d40    0x240  at 0x39bd811d03
+0x0000000002683f90    0x240  at 0x39bd811d03
+0x00000000026841e0    0x240  at 0x39bd811d03
+0x0000000002684430    0x240  at 0x39bd811d03
+0x0000000002684680    0x240  at 0x39bd811d03
+0x00000000026848d0    0x240  at 0x39bd811d03
+0x0000000002684b20    0x240  at 0x39bd811d03
+0x0000000002684d70    0x240  at 0x39bd811d03
+0x0000000002684fc0    0x240  at 0x39bd811d03
+0x0000000002685210    0x240  at 0x39bd811d03
+0x0000000002685460    0x240  at 0x39bd811d03
+0x00000000026856b0    0x240  at 0x39bd811d03
+0x0000000002685900    0x240  at 0x39bd811d03
+0x0000000002685b50    0x240  at 0x39bd811d03
+0x0000000002685da0    0x240  at 0x39bd811d03
+0x0000000002685ff0    0x240  at 0x39bd811d03
+0x0000000002686240    0x240  at 0x39bd811d03
+0x0000000002686490    0x240  at 0x39bd811d03
+0x00000000026866e0    0x240  at 0x39bd811d03
+0x0000000002686930    0x240  at 0x39bd811d03
+0x0000000002686b80    0x240  at 0x39bd811d03
+0x0000000002686dd0    0x240  at 0x39bd811d03
+
+But on piazza, TAs said that this program has a memory leakage as default, so I should not care about those.
+
+Done!
