@@ -11,11 +11,13 @@ Text
 
     Randal E. Bryant and David R. O'Hallaron, Computer Systems: A Programmer's Perspective, 3rd edition (CS:APP3e), Prentice Hall (2016). ISBN 0-13-409266-X. Errata are available.
 
+
 Schedule
 
 This schedule is tentative and most likely will be revised. Among other things, the assignments are not yet cast in stone. More assignments may be added.
 
-/***
+
+
 |date 	    |    due 	      |  readings 	    |  lecture topics|
 |---|---|---|---|
 |09-27 R 	|		          |                 |   1. Introduction|
@@ -40,7 +42,8 @@ This schedule is tentative and most likely will be revised. Among other things, 
 |12-04 T 	|                 |  §7 	        |    16. Linking|
 |12-06 R 	|    OpenMP Lab   |	  §8, Appendix A| 	17. Exceptions and errors|
 
-***/
+
+
 
 The following textbook chapters are useful and entertaining but are not part of this course: §4, §11.
 
