@@ -1,0 +1,46 @@
+Name: Beomjoo Kim
+UID: 605128830
+
+So basically, I used same instructions once I got into the scope of the first line of Ftimes function.
+
+First, I started with
+$ gdb ~eggert/bin64/bin/emacs-26.1
+
+This command launches gdb and examine through the following file.
+
+(gdb) break Ftimes
+
+I set a breakpoint at the function Ftimes. From this point, we no longer need to set another breakpoint.
+
+(gdb) r -Q -batch -eval '(print (* 1250284240 -1844255039))'
+
+This line runs the function to multiply the given numbers and display the result.
+
+(gdb) set disassemble-next-line on
+
+This command was really useful. When I didn't know about this command, I had to adjust the scope for every single step, but using this made stepping through each instruction easier to read. The disassembled code was shown as I step into next line. This line is needed only once at the beginning of examining.
+
+(gdb) disas
+
+This dumps out the disassembled version of the machine code with an arrow pointing to the machine line.
+
+(gdb) si
+
+This command enables me to step into next line of a function. This gave me the hex representation of the machine code so we could see information like how many bytes each machine instruction was and the path and line number in the source code.
+
+(gdb) i r [register name]
+
+Every time I stepped into new line, I knew what machine language was doing and I needed to check a status of specific register. 
+
+
+
+The general pattern for my trace was as follows (once inside the linux server):
+1.) gdb ~eggert/bin64/bin/emacs-26.1
+2.) break Ftimes
+3.) r -Q -batch -eval '(print (* 1250284240 -1844255039))'
+4.) set disassemble-next-line on
+5.) disas
+6.) si
+7.) i r r [register name]
+
+I repeated commands 6 and 7 until I hit the end of the arith_driver function. Also, I skipped cmp and test lines without checking 7 because I didn't need to check the flag and there was no change of values of registers.

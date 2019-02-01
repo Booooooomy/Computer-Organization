@@ -1,0 +1,23 @@
+name: Beomjoo Kim
+UID: 605128830
+
+1. Explain why the instructions in the trace did not produce the correct mathematical result. Which instructions caused the problem, exactly?
+
+This line caused the incorrect result:
+54e014 	0x2(,%rbp,4),%rax	rax = 7fffffff73ab3b42,
+and it is because when rbp is filled with a number which is over the limit, which causes it an overflow.
+
+
+2. Explain why the shell command emacs -Q -batch -eval '(print most-negative-fixnum)' outputs -2305843009213693952. Where did the number come from? Explain in terms of the Emacs source code.
+
+Since we compiled the program on x86-64, EMACS_INT_MIN is defined as LONG_MIN, which is -0x8000...0 and if we right shift this by 2, as given, we get the number.
+
+
+3. Explain why the shell command emacs -Q -batch -eval '(print (* most-positive-fixnum most-positive-fixnum most-positive-fixnum most-positive-fixnum))' outputs only 1.
+
+The most-positive-fixnum is 0x7FFFFFFFFFFFFFFF, and if multiplied by itself it would return really big number and overflow occurs. But Emacs converts the result by shifting left by 2 and then right shifting it back. We keep doing this because we're multiplying the same number for 4 times and this is why we get 1 as the output.
+
+
+4. The Emacs executable was compiled with GCC's -O2 option. Suppose it had also been compiled with -fwrapv. Explain any problems Emacs would run into, or if there would not be a problem explain why not.
+
+The result with using -fwrapv would also be wrong because the command discards bits that exceed the limit of 64bit. But there would be no error because it wraps up the overflow.
