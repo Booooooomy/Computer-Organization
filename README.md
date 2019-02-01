@@ -15,7 +15,7 @@ Schedule
 
 This schedule is tentative and most likely will be revised. Among other things, the assignments are not yet cast in stone. More assignments may be added.
 |date 	    |    due 	      |  readings 	    |  lecture topics|
-|------------|-----------------|-----------------|---------------------------------|
+|---|---|---|---|
 |09-27 R 	|		          |                 |   1. Introduction|
 |10-02 T 	|	              |  §1–§2.3, §2.5 	|   2. Integers|
 |10-04 R 	|	              |  §3–§3.5 	    |  3. Machine-level programming basics|
