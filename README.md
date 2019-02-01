@@ -14,6 +14,8 @@ Text
 Schedule
 
 This schedule is tentative and most likely will be revised. Among other things, the assignments are not yet cast in stone. More assignments may be added.
+
+/***
 |date 	    |    due 	      |  readings 	    |  lecture topics|
 |---|---|---|---|
 |09-27 R 	|		          |                 |   1. Introduction|
@@ -37,6 +39,8 @@ This schedule is tentative and most likely will be revised. Among other things, 
 |11-29 R 	|    HW #5 	      |  §9 	        |    15. Virtual memory|
 |12-04 T 	|                 |  §7 	        |    16. Linking|
 |12-06 R 	|    OpenMP Lab   |	  §8, Appendix A| 	17. Exceptions and errors|
+
+***/
 
 The following textbook chapters are useful and entertaining but are not part of this course: §4, §11.
 
