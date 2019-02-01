@@ -4,11 +4,11 @@ UCLA Computer Science 33, Fall 2018.
 Introduction to Computer Organization
 Professor Paul Eggert
 
+Beomjoo Kim grade: A+ (98/100)
+
 Textbook
 
     Randal E. Bryant and David R. O'Hallaron, Computer Systems: A Programmer's Perspective, 3rd edition (CS:APP3e), Prentice Hall (2016). ISBN 0-13-409266-X. Errata are available.
-
-Beomjoo Kim lab grade: A+ (98/100)
 
 Schedule
 
